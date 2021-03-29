@@ -5,21 +5,33 @@
 
 class ElementColon : public Element {
 public:
-    ElementColon(size_t ledCountPerSegment, CRGB *buffer = NULL) : Element(ledCountPerSegment * 2, buffer) {
-        for (int i = 0; i < 2; i++) {
-            Element *elem = new Element(ledCountPerSegment);
-            addChild(elem);
-        }
-    }
+    float POSITION_LOOKUP_X[56] = {
+        -7.91,
+		-9.59,
+		-9.59,
+		-7.91,
+		-7.91,
+		-9.59,
+		-9.59,
+		-7.91
+    };
 
-    ~ElementColon() {
-        for (element_iterator it = childrenBegin(); it != childrenEnd(); it++) {
-            Element *elem = *it;
-            delete elem;
-        }
+    float POSITION_LOOKUP_Y[56] = {
+        -4.59,
+		-4.59,
+		-2.91,
+		-2.91,
+		2.91,
+		2.91,
+		4.59,
+		4.59
+    };
 
-        clearChildren();
-    }
+    ElementColon(size_t ledCountPerSegment, CRGB *buffer = NULL);
+    ~ElementColon();
+
+    void indexToCoords(size_t index, double *x, double *y);
+    void exit(double *x, double *y);
 };
 
 #endif // ELEMENT_COLON_H

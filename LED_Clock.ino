@@ -100,9 +100,10 @@ void loop()
     if (startMillis - lastUpdateMillis > 1000.0 / UPDATES_PER_SECOND) {
         clockElem.setColor(CHSV(hue++, 255, 255)); // give the colon a color cycle effect
         clockElem.update(); // update the time and numbers
+
         FastLED.show();
 
-        Serial.println("running");
+        // Serial.println("running");
         lastUpdateMillis = startMillis;
     }
 }

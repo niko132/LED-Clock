@@ -1,6 +1,8 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
+#include "IndexCoordsConverter.h"
+
 #include <FastLED.h>
 
 #include <list>
@@ -10,7 +12,7 @@ class Element;
 
 typedef std::list<Element*>::iterator element_iterator;
 
-class Element {
+class Element : public IndexCoordsConverter {
 private:
     CRGB *_buffer = NULL;
     size_t _ledCount;
@@ -19,73 +21,28 @@ private:
     size_t _currentChildrenLedIndex;
 
 public:
-    Element(size_t ledCount, CRGB *buffer = NULL) {
-        _buffer = buffer;
-        _ledCount = ledCount;
+    Element(size_t ledCount, CRGB *buffer = NULL);
 
-        _currentChildrenLedIndex = 0;
-    }
+    size_t getLedCount();
 
-    size_t getLedCount() {
-        return _ledCount;
-    }
+    void setBuffer(CRGB *buffer);
+    CRGB* getBuffer();
 
-    void setBuffer(CRGB *buffer) {
-        _buffer = buffer;
+    bool addChild(Element *child);
+    void removeChild(Element *child);
+    void clearChildren();
 
-        // update every child buffer
-        _currentChildrenLedIndex = 0;
-        for (std::list<Element*>::iterator it = _children.begin(); it != _children.end(); it++) {
-            Element *elem = *it;
-            elem->setBuffer(&_buffer[_currentChildrenLedIndex]);
-            _currentChildrenLedIndex += elem->getLedCount();
-        }
-    }
+    element_iterator childrenBegin();
+    element_iterator childrenEnd();
 
-    CRGB* getBuffer() {
-        return _buffer;
-    }
+    void setColor(CRGB color);
+    void setColorAt(size_t index, CRGB color);
 
-    bool addChild(Element *child) {
-        if (_currentChildrenLedIndex + child->getLedCount() > _ledCount) {
-            return false;
-        }
+    virtual void indexToCoords(size_t index, double *x, double *y) = 0;
+    virtual void exit(double *x, double *y) = 0;
 
-        if (_buffer) {
-            child->setBuffer(&_buffer[_currentChildrenLedIndex]);
-        }
-        _children.push_back(child);
-
-        _currentChildrenLedIndex += child->getLedCount();
-
-        return true;
-    }
-
-    void removeChild(Element *child) {
-        _children.remove(child);
-    }
-
-    void clearChildren() {
-        _children.clear();
-    }
-
-    element_iterator childrenBegin() {
-        return _children.begin();
-    }
-
-    element_iterator childrenEnd() {
-        return _children.end();
-    }
-
-    void setColor(CRGB color) {
-        for (int i = 0; i < getLedCount(); i++) {
-            _buffer[i] = color;
-        }
-    }
-
-    void setColorAt(size_t index, CRGB color) {
-        _buffer[index] = color;
-    }
+    virtual void update();
+    void updateChildren();
 };
 
 #endif // ELEMENT_H
