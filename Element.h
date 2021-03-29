@@ -1,74 +1,80 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
 
-#include "Filter.h"
-
 #include <FastLED.h>
 
-#include <vector>
-#include <algorithm>
+#include <list>
+
+// forward declaration so we can use it in typedef
+class Element;
+
+typedef std::list<Element*>::iterator element_iterator;
 
 class Element {
 private:
     CRGB *_buffer = NULL;
-    std::vector<Filter*> _filters;
+    size_t _ledCount;
 
-protected:
-    void applyFilterImpl() {
-        for (int i = 0; i < getLedCount(); i++) {
-            CRGB color = _buffer[i];
-
-            // apply every Filter
-            // TODO: maybe process them in normal order
-            for (int j = _filters.size() - 1; j >= 0; j--) {
-                Filter *filter = _filters.at(j);
-
-                if (filter->finished()) {
-                    // this is a timed filter which should be deleted when it has finished
-
-                    // remove filter from list
-                    std::vector<Filter*>::iterator it = _filters.begin() + j;
-                    _filters.erase(it);
-
-                    // delete filter
-                    delete filter;
-                    filter = NULL;
-                } else {
-                    color = filter->apply(color);
-                }
-            }
-
-            _buffer[i] = color;
-        }
-    }
+    std::list<Element*> _children;
+    size_t _currentChildrenLedIndex;
 
 public:
-    Element(CRGB *buffer) {
+    Element(size_t ledCount, CRGB *buffer = NULL) {
         _buffer = buffer;
+        _ledCount = ledCount;
+
+        _currentChildrenLedIndex = 0;
     }
 
-    virtual size_t getLedCount() = 0;
-
-    void addFilter(Filter *filter) {
-        _filters.push_back(filter);
+    size_t getLedCount() {
+        return _ledCount;
     }
 
-    void removeFilter(Filter *filter) {
-        // TODO: double check - why the _filters.end() at the end???
-        _filters.erase(std::remove(_filters.begin(), _filters.end(), filter), _filters.end());
+    void setBuffer(CRGB *buffer) {
+        _buffer = buffer;
+
+        // update every child buffer
+        _currentChildrenLedIndex = 0;
+        for (std::list<Element*>::iterator it = _children.begin(); it != _children.end(); it++) {
+            Element *elem = *it;
+            elem->setBuffer(&_buffer[_currentChildrenLedIndex]);
+            _currentChildrenLedIndex += elem->getLedCount();
+        }
     }
 
-    void removeAllFilter() {
-        for (int i = _filters.size() - 1; i >= 0; i--) {
-            Filter *filter = _filters.at(i);
-            delete filter;
+    CRGB* getBuffer() {
+        return _buffer;
+    }
+
+    bool addChild(Element *child) {
+        if (_currentChildrenLedIndex + child->getLedCount() > _ledCount) {
+            return false;
         }
 
-        _filters.clear();
+        if (_buffer) {
+            child->setBuffer(&_buffer[_currentChildrenLedIndex]);
+        }
+        _children.push_back(child);
+
+        _currentChildrenLedIndex += child->getLedCount();
+
+        return true;
     }
 
-    size_t getFilterCount() {
-        return _filters.size();
+    void removeChild(Element *child) {
+        _children.remove(child);
+    }
+
+    void clearChildren() {
+        _children.clear();
+    }
+
+    element_iterator childrenBegin() {
+        return _children.begin();
+    }
+
+    element_iterator childrenEnd() {
+        return _children.end();
     }
 
     void setColor(CRGB color) {
@@ -79,10 +85,6 @@ public:
 
     void setColorAt(size_t index, CRGB color) {
         _buffer[index] = color;
-    }
-
-    virtual void applyFilter() {
-        applyFilterImpl();
     }
 };
 

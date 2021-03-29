@@ -7,10 +7,8 @@
 
 #include <FastLED.h>
 
-#include "ElementManager.h"
+#include "ElementClock.h"
 #include "RTC.h"
-
-#include "FilterLightUp.h"
 
 #ifndef STASSID
 #define STASSID "WGLan"
@@ -34,7 +32,7 @@ CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 60
 
-ElementManager elementManager(leds, NUM_LEDS);
+ElementClock clockElem(leds);
 
 void setup() {
   Serial.begin(115200);
@@ -89,23 +87,10 @@ void setup() {
   FastLED.setBrightness(BRIGHTNESS);
 
   RTC.begin();
-
-  Element *elem1 = elementManager.addElement(ELEMENT_7_SEGMENTS);
-  Element *elem2 = elementManager.addElement(ELEMENT_7_SEGMENTS);
-  Element *elem3 = elementManager.addElement(ELEMENT_COLON);
-  Element *elem4 = elementManager.addElement(ELEMENT_7_SEGMENTS);
-  Element *elem5 = elementManager.addElement(ELEMENT_7_SEGMENTS);
-
-  Serial.println("Elements added: " + String(elem1 != NULL) + " " + String(elem2 != NULL) + " " + String(elem3 != NULL) + " " + String(elem4 != NULL) + " " + String(elem5 != NULL));
-
-  elem1->addFilter(new FilterLightUp(10000));
-  elem2->addFilter(new FilterLightUp(10000));
-  elem3->addFilter(new FilterLightUp(10000));
-  elem4->addFilter(new FilterLightUp(10000));
-  elem5->addFilter(new FilterLightUp(10000));
 }
 
 unsigned long lastUpdateMillis = 0;
+uint8_t hue = 0;
 
 void loop()
 {
@@ -113,31 +98,9 @@ void loop()
     ArduinoOTA.handle();
 
     if (startMillis - lastUpdateMillis > 1000.0 / UPDATES_PER_SECOND) {
-        int hourDigit0 = RTC.getHours() / 10;
-        int hourDigit1 = RTC.getHours() % 10;
-        int minuteDigit0 = RTC.getMinutes() / 10;
-        int minuteDigit1 = RTC.getMinutes() % 10;
-
-        Element7Segments *minute1Elem = (Element7Segments*) elementManager.getElementAt(0);
-        Element7Segments *minute0Elem = (Element7Segments*) elementManager.getElementAt(1);
-        Element7Segments *hour1Elem = (Element7Segments*) elementManager.getElementAt(3);
-        Element7Segments *hour0Elem = (Element7Segments*) elementManager.getElementAt(4);
-
-        for (int i = 0; i < NUM_LEDS; i++) {
-            leds[i] = CRGB(255, 0, 0);
-        }
-
-
-        hour0Elem->display(hourDigit0);
-        hour1Elem->display(hourDigit1);
-        minute0Elem->display(minuteDigit0);
-        minute1Elem->display(minuteDigit1);
-
-        elementManager.applyFilter();
-
+        clockElem.setColor(CHSV(hue++, 255, 255)); // give the colon a color cycle effect
+        clockElem.update(); // update the time and numbers
         FastLED.show();
-
-
 
         Serial.println("running");
         lastUpdateMillis = startMillis;
