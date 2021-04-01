@@ -101,6 +101,10 @@ void loop()
         clockElem.setColor(CHSV(hue++, 255, 255)); // give the colon a color cycle effect
         clockElem.update(); // update the time and numbers
 
+        hue = (uint8_t)(32.0 * ((unsigned long)((millis() + 1000.0) / 4000.0 + 4.0) % 8));
+
+        (*(++(++clockElem.childrenBegin())))->setColor(CHSV(hue, 255, sin8_C((uint8_t)(millis() / 4000.0 * 255.0))));
+
         FastLED.show();
 
         // Serial.println("running");

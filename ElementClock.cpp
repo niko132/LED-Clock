@@ -5,6 +5,8 @@
 
 #include "RTC.h"
 
+#include "ColorFade.h"
+
 ElementClock::ElementClock(CRGB *buffer) : Element(232, buffer) { // the number of leds needed for a clock
     _secondMinuteElem = new Element7Segments(8);
     _firstMinuteElem = new Element7Segments(8);
@@ -106,6 +108,7 @@ void ElementClock::update() {
 
     width = startX - endX;
 
+    /*
     for (size_t i = 0; i < getLedCount(); i++) {
         double x;
         double y;
@@ -126,8 +129,22 @@ void ElementClock::update() {
             hue = 127;
         }
         */
+        /*
+        setColorAt(i, CHSV(hue, 255, 255));
+    }
+    */
 
-        getBuffer()[i] = CHSV(hue, 255, 255);
+    ColorFade effect;
+    effect.setAngleSpeed(2.0);
+    effect.setShiftSpeed(2.0);
+
+    for (size_t i = 0; i < getLedCount(); i++) {
+        double x, y;
+        indexToCoords(i, &x, &y);
+        x += width / 2.0; // center the animation in the middle
+
+        CRGB color = effect.getColor(i, getLedCount(), x, y);
+        setColorAt(i, color);
     }
 
 
