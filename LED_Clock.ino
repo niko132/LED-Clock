@@ -10,10 +10,7 @@
 #include "ElementClock.h"
 #include "RTC.h"
 
-#ifndef STASSID
-#define STASSID "WGLan"
-#define STAPSK  "94384322823429699220"
-#endif
+#include "config.h"
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
