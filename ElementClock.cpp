@@ -6,6 +6,7 @@
 #include "RTC.h"
 
 #include "ColorFade.h"
+#include "RandomColor.h"
 
 ElementClock::ElementClock(CRGB *buffer) : Element(232, buffer) { // the number of leds needed for a clock
     _secondMinuteElem = new Element7Segments(8);
@@ -136,7 +137,14 @@ void ElementClock::update() {
 
     ColorFade effect;
     effect.setAngleSpeed(2.0);
-    effect.setShiftSpeed(2.0);
+    // effect.setShiftSpeed(2.0);
+
+    /*
+    RandomColor effect;
+    effect.setChangeSpeed(5.0);
+    effect.setFading(true);
+    effect.setPixelSize(8);
+    */
 
     for (size_t i = 0; i < getLedCount(); i++) {
         double x, y;
