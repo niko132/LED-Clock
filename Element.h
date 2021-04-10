@@ -2,6 +2,7 @@
 #define ELEMENT_H
 
 #include "IndexCoordsConverter.h"
+#include "Filter.h"
 
 #include <FastLED.h>
 
@@ -20,6 +21,8 @@ private:
     std::list<Element*> _children;
     size_t _currentChildrenLedIndex;
 
+    std::list<Filter*> _filters;
+
 public:
     Element(size_t ledCount, CRGB *buffer = NULL);
 
@@ -37,6 +40,10 @@ public:
 
     void setColor(CRGB color);
     void setColorAt(size_t index, CRGB color);
+
+    void addFilter(Filter *filter);
+    void removeAllFilters();
+    void applyFilter();
 
     virtual void indexToCoords(size_t index, double *x, double *y) = 0;
     virtual void exit(double *x, double *y) = 0;

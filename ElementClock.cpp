@@ -175,5 +175,11 @@ void ElementClock::update() {
     }
 
     // TODO: update children effect
+    /*
     updateChildren();
+
+    applyFilter();
+    */
+
+    Element::update();
 }

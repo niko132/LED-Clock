@@ -10,6 +10,8 @@
 #include "ElementClock.h"
 #include "RTC.h"
 
+#include "BrightnessFilter.h"
+
 #include "config.h"
 
 const char* ssid = STASSID;
@@ -84,6 +86,9 @@ void setup() {
   FastLED.setBrightness(BRIGHTNESS);
 
   RTC.begin();
+
+  // fade in for 10 secs
+  clockElem.addFilter(new BrightnessFilter(0, 255, 10000, 10000));
 }
 
 unsigned long lastUpdateMillis = 0;

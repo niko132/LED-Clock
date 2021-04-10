@@ -19,8 +19,11 @@ uint8_t NUMBERS[10][7] = {
 */
 
 class Element7Segments : public Element {
+private:
+    uint8_t _currentDigit = 10; // 10 is just none lit
+
 public:
-    uint8_t NUMBER_BM[10] = {
+    uint8_t NUMBER_BM[11] = {
         0b1110111,
         0b0010001,
         0b1101011,
@@ -30,7 +33,8 @@ public:
         0b1111110,
         0b0010011,
         0b1111111,
-        0b0111111
+        0b0111111,
+        0b1111111
     };
 
     float POSITION_LOOKUP_X[56] = {

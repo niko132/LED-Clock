@@ -1,6 +1,7 @@
 #include "Element7Segments.h"
 
 #include "ElementSegment.h"
+#include "BrightnessFilter.h"
 
 Element7Segments::Element7Segments(size_t ledCountPerSegment, CRGB *buffer) : Element(ledCountPerSegment * 7, buffer) {
     for (int i = 0; i < 7; i++) {
@@ -67,6 +68,11 @@ void Element7Segments::exit(double *x, double *y) {
 void Element7Segments::setDigit(uint8_t digit) {
     digit = digit % 10; // ensure it's a single digit
 
+    if (_currentDigit == digit) {
+        return; // do nothing
+    }
+
+    /*
     size_t currentIndex = 0;
     for (element_iterator it = childrenBegin(); it != childrenEnd(); it++, currentIndex++) {
         bool lit = (NUMBER_BM[digit] >> currentIndex) & 0x1;
@@ -79,4 +85,28 @@ void Element7Segments::setDigit(uint8_t digit) {
             // do nothing to show the current effect
         }
     }
+    */
+
+    // TODO
+    // for every child
+    // remove every filter
+    // add filter if needed
+
+    size_t currentIndex = 0;
+    for (element_iterator it = childrenBegin(); it != childrenEnd(); it++, currentIndex++) {
+        bool fromLit = (NUMBER_BM[_currentDigit] >> currentIndex) & 0x1;
+        bool toLit = (NUMBER_BM[digit] >> currentIndex) & 0x1;
+
+        Element *elem = *it;
+
+        // only update the filters when needed
+        // used to improve performance - maybe delete it later
+        if (fromLit != toLit) {
+            elem->removeAllFilters();
+            // add a new animation filter to fade from old to new segment brightness in 500ms
+            elem->addFilter(new BrightnessFilter((uint8_t)(fromLit * 255), (uint8_t)(toLit * 255), 500));
+        }
+    }
+
+    _currentDigit = digit;
 }

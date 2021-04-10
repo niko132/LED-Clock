@@ -68,9 +68,50 @@ void Element::setColorAt(size_t index, CRGB color) {
     _buffer[index] = color;
 }
 
+void Element::addFilter(Filter *filter) {
+    _filters.push_back(filter);
+}
+
+void Element::removeAllFilters() {
+    for (std::list<Filter*>::iterator it = _filters.begin(); it != _filters.end(); it++) {
+        Filter *filter = *it;
+
+        if (filter) {
+            delete filter;
+        }
+    }
+
+    _filters.clear();
+}
+
+void Element::applyFilter() {
+    for (size_t i = 0; i < getLedCount(); i++) {
+        CRGB color = _buffer[i];
+
+        // maybe in reverse order
+        std::list<Filter*>::iterator it = _filters.begin();
+        while(it != _filters.end()) {
+            Filter *filter = *it;
+
+            if (filter->finished()) {
+                delete filter;
+                _filters.erase(it++);
+                continue;
+            } else {
+                color = filter->apply(color);
+                it++;
+            }
+        }
+
+        _buffer[i] = color;
+    }
+}
+
 void Element::update() {
     // Place to update own effects
     updateChildren();
+
+    applyFilter();
 }
 
 void Element::updateChildren() {
