@@ -26,6 +26,7 @@ private:
 
 public:
     Element(size_t ledCount, CRGB *buffer = NULL);
+    ~Element();
 
     size_t getLedCount();
 
@@ -38,6 +39,8 @@ public:
 
     element_iterator childrenBegin();
     element_iterator childrenEnd();
+
+    void setBrightness(uint8_t brightness);
 
     void setColor(CRGB color);
     void setColorAt(size_t index, CRGB color);

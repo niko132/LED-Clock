@@ -8,7 +8,7 @@
 #include "ColorFade.h"
 #include "RandomColor.h"
 
-ElementClock::ElementClock(CRGB *buffer) : Element(232, buffer) { // the number of leds needed for a clock
+ElementClock::ElementClock(CRGB *buffer, Espalexa *espalexa) : Element(232, buffer) { // the number of leds needed for a clock
     _secondMinuteElem = new Element7Segments(8);
     _firstMinuteElem = new Element7Segments(8);
     _colonElem = new ElementColon(4);
@@ -20,6 +20,9 @@ ElementClock::ElementClock(CRGB *buffer) : Element(232, buffer) { // the number 
     addChild(_colonElem);
     addChild(_secondHourElem);
     addChild(_firstHourElem);
+
+    _espalexa = espalexa;
+    setAlexaName("Regal");
 }
 
 ElementClock::~ElementClock() {
@@ -48,6 +51,33 @@ ElementClock::~ElementClock() {
     if (_secondMinuteElem) {
         delete _secondMinuteElem;
         _secondMinuteElem = NULL;
+    }
+
+    // TODO proper handle alexa device deleting - reference at espalexa is still there
+    if (_alexaDevice) {
+        delete _alexaDevice;
+        _alexaDevice = NULL;
+    }
+}
+
+void ElementClock::setAlexaName(String name) {
+    if (!_alexaDevice) {
+        _alexaDevice = new EspalexaDevice(name, std::bind(&ElementClock::onAlexaChange, this, std::placeholders::_1), EspalexaDeviceType::extendedcolor);
+        _espalexa->addDevice(_alexaDevice);
+    } else if (_alexaDevice->getName() != name) {
+        _alexaDevice->setName(name);
+    }
+}
+
+void ElementClock::onAlexaChange(EspalexaDevice *device) {
+    EspalexaDeviceProperty prop = _alexaDevice->getLastChangedProperty();
+
+    if (prop == EspalexaDeviceProperty::on) {
+        setBrightness(255);
+    } else if (prop == EspalexaDeviceProperty::off) {
+        setBrightness(0);
+    } else if (prop == EspalexaDeviceProperty::bri) {
+        setBrightness(_alexaDevice->getValue());
     }
 }
 

@@ -6,6 +6,12 @@ BrightnessFilter::BrightnessFilter(uint8_t from, uint8_t to, unsigned long durat
     _duration = duration;
 }
 
+void BrightnessFilter::setMaxBrightness(uint8_t max) {
+    _from = _to;
+    _to = max;
+    _startMillis = millis();
+}
+
 CRGB BrightnessFilter::apply(CRGB color) {
     float frac;
 

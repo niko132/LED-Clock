@@ -13,6 +13,8 @@
 #include "BrightnessFilter.h"
 #include "BreathingFilter.h"
 
+#include "Espalexa.h"
+
 #include "config.h"
 
 const char* ssid = STASSID;
@@ -32,7 +34,9 @@ CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 60
 
-ElementClock clockElem(leds);
+Espalexa espalexa;
+
+ElementClock clockElem(leds, &espalexa);
 
 void setup() {
   Serial.begin(115200);
@@ -93,6 +97,8 @@ void setup() {
 
   // add breathing effect to the middle dots
   (*(++(++clockElem.childrenBegin())))->addFilter(new BreathingFilter(0, 255, 2000, 0));
+
+  espalexa.begin();
 }
 
 unsigned long lastUpdateMillis = 0;
@@ -101,6 +107,7 @@ void loop()
 {
     unsigned long startMillis = millis();
     ArduinoOTA.handle();
+    espalexa.loop();
 
     if (startMillis - lastUpdateMillis > 1000.0 / UPDATES_PER_SECOND) {
         clockElem.update(); // update the time and numbers

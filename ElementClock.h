@@ -3,6 +3,8 @@
 
 #include "Element.h"
 
+#include "Espalexa.h"
+
 class ElementClock : public Element {
 private:
     Element *_firstHourElem;
@@ -11,9 +13,17 @@ private:
     Element *_firstMinuteElem;
     Element *_secondMinuteElem;
 
+    Espalexa *_espalexa = NULL;
+    EspalexaDevice *_alexaDevice = NULL;
+
+protected:
+    virtual void onAlexaChange(EspalexaDevice *device);
+
 public:
-    ElementClock(CRGB *buffer);
+    ElementClock(CRGB *buffer, Espalexa *espalexa);
     ~ElementClock();
+
+    void setAlexaName(String name);
 
     void indexToCoords(size_t index, double *x, double *y);
     void exit(double *x, double *y);

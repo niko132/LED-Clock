@@ -1,10 +1,28 @@
 #include "Element.h"
 
+#include "BrightnessFilter.h"
+
 Element::Element(size_t ledCount, CRGB *buffer) {
     _buffer = buffer;
     _ledCount = ledCount;
 
     _currentChildrenLedIndex = 0;
+
+    // first filter is always the brightness
+    // fade with a 1s animation
+    _filters.push_back(new BrightnessFilter(255, 255, 500, 0));
+}
+
+Element::~Element() {
+    for (filter_iterator it = _filters.begin(); it != _filters.end(); it++) {
+        Filter *filter = *it;
+
+        if (filter) {
+            delete filter;
+        }
+    }
+
+    _filters.clear();
 }
 
 size_t Element::getLedCount() {
@@ -58,6 +76,10 @@ element_iterator Element::childrenEnd() {
     return _children.end();
 }
 
+void Element::setBrightness(uint8_t brightness) {
+    ((BrightnessFilter*)(*_filters.begin()))->setMaxBrightness(brightness);
+}
+
 void Element::setColor(CRGB color) {
     for (int i = 0; i < getLedCount(); i++) {
         _buffer[i] = color;
@@ -73,7 +95,8 @@ void Element::addFilter(Filter *filter) {
 }
 
 void Element::removeAllFilters() {
-    for (filter_iterator it = _filters.begin(); it != _filters.end(); it++) {
+    // the first filter is the brightness filter - DON'T DELETE
+    for (filter_iterator it = (++_filters.begin()); it != _filters.end(); it++) {
         Filter *filter = *it;
 
         if (filter) {

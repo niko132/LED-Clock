@@ -11,6 +11,7 @@ private:
 
 public:
     BrightnessFilter(uint8_t from, uint8_t to, unsigned long duration, unsigned long timeout = 0);
+    void setMaxBrightness(uint8_t max);
 
     CRGB apply(CRGB color);
 };
