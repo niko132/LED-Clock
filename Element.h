@@ -12,6 +12,7 @@
 class Element;
 
 typedef std::list<Element*>::iterator element_iterator;
+typedef std::list<Filter*>::iterator filter_iterator;
 
 class Element : public IndexCoordsConverter {
 private:

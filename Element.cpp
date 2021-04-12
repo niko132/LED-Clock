@@ -73,7 +73,7 @@ void Element::addFilter(Filter *filter) {
 }
 
 void Element::removeAllFilters() {
-    for (std::list<Filter*>::iterator it = _filters.begin(); it != _filters.end(); it++) {
+    for (filter_iterator it = _filters.begin(); it != _filters.end(); it++) {
         Filter *filter = *it;
 
         if (filter) {
@@ -88,8 +88,8 @@ void Element::applyFilter() {
     for (size_t i = 0; i < getLedCount(); i++) {
         CRGB color = _buffer[i];
 
-        // maybe in reverse order
-        std::list<Filter*>::iterator it = _filters.begin();
+        // TODO maybe in reverse order
+        filter_iterator it = _filters.begin();
         while(it != _filters.end()) {
             Filter *filter = *it;
 

@@ -11,6 +11,7 @@
 #include "RTC.h"
 
 #include "BrightnessFilter.h"
+#include "BreathingFilter.h"
 
 #include "config.h"
 
@@ -89,10 +90,12 @@ void setup() {
 
   // fade in for 10 secs
   clockElem.addFilter(new BrightnessFilter(0, 255, 10000, 10000));
+
+  // add breathing effect to the middle dots
+  (*(++(++clockElem.childrenBegin())))->addFilter(new BreathingFilter(0, 255, 2000, 0));
 }
 
 unsigned long lastUpdateMillis = 0;
-uint8_t hue = 0;
 
 void loop()
 {
@@ -100,16 +103,9 @@ void loop()
     ArduinoOTA.handle();
 
     if (startMillis - lastUpdateMillis > 1000.0 / UPDATES_PER_SECOND) {
-        clockElem.setColor(CHSV(hue++, 255, 255)); // give the colon a color cycle effect
         clockElem.update(); // update the time and numbers
-
-        hue = (uint8_t)(32.0 * ((unsigned long)((millis() + 1000.0) / 4000.0 + 4.0) % 8));
-
-        // (*(++(++clockElem.childrenBegin())))->setColor(CHSV(hue, 255, sin8_C((uint8_t)(millis() / 4000.0 * 255.0))));
-
         FastLED.show();
 
-        // Serial.println("running");
         lastUpdateMillis = startMillis;
     }
 }

@@ -7,9 +7,15 @@ BrightnessFilter::BrightnessFilter(uint8_t from, uint8_t to, unsigned long durat
 }
 
 CRGB BrightnessFilter::apply(CRGB color) {
-    float frac = (float)(millis() - _startMillis) / _duration;
-    if (frac > 1.0) {
-        frac = 1.0;
+    float frac;
+
+    if (_duration == 0) {
+        frac = 1.0; // instant end value
+    } else {
+        frac = (float)(millis() - _startMillis) / _duration;
+        if (frac > 1.0) {
+            frac = 1.0;
+        }
     }
 
     uint8_t brightness = (uint8_t)(_from + (_to - _from) * frac);
