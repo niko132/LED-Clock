@@ -156,10 +156,11 @@ public:
     };
 
     Element7Segments(size_t ledCountPerSegment, CRGB *buffer = NULL);
+    Element7Segments(JsonObject &root);
     ~Element7Segments();
 
     void indexToCoords(size_t index, double *x, double *y);
-    void exit(double *x, double *y);
+    void exitCoords(double *x, double *y);
 
     void setDigit(uint8_t digit);
 };

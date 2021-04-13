@@ -1,6 +1,10 @@
 #include "ElementSegment.h"
 
-ElementSegment::ElementSegment(size_t ledCount, CRGB *buffer) : Element(ledCount, buffer) {
+ElementSegment::ElementSegment(size_t ledCount, CRGB *buffer) : Element("ElementSegment", ledCount, buffer) {
+
+}
+
+ElementSegment::ElementSegment(JsonObject &root) : Element("ElementSegment", root) {
 
 }
 
@@ -9,7 +13,7 @@ void ElementSegment::indexToCoords(size_t index, double *x, double *y) {
     *y = 0.0;
 }
 
-void ElementSegment::exit(double *x, double *y) {
+void ElementSegment::exitCoords(double *x, double *y) {
     *x = 17.7;
     *y = 0.0;
 }

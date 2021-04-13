@@ -1,10 +1,32 @@
 #include "ColorFade.h"
 
-ColorFade::ColorFade(double angle, double scale) {
+ColorFade::ColorFade(double angle, double scale) : Effect("ColorFade") {
     _angle = angle;
     _scale = scale;
     _angleSpeed = 0.0;
     _shiftSpeed = 0.0;
+}
+
+ColorFade::ColorFade(JsonObject &root) : Effect("ColorFade", root) {
+    
+}
+
+void ColorFade::fromJson(JsonObject &root) {
+    Effect::fromJson(root);
+
+    _angle = root["angle"] | _angle;
+    _scale = root["scale"] | _scale;
+    _angleSpeed = root["angleSpeed"] | _angleSpeed;
+    _shiftSpeed = root["shiftSpeed"] | _shiftSpeed;
+}
+
+void ColorFade::toJson(JsonObject &root) {
+    Effect::toJson(root);
+
+    root["angle"] = _angle;
+    root["scale"] = _scale;
+    root["angleSpeed"] = _angleSpeed;
+    root["shiftSpeed"] = _shiftSpeed;
 }
 
 void ColorFade::setAngleSpeed(double angleSpeed) {

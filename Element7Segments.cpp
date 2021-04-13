@@ -3,11 +3,15 @@
 #include "ElementSegment.h"
 #include "BrightnessFilter.h"
 
-Element7Segments::Element7Segments(size_t ledCountPerSegment, CRGB *buffer) : Element(ledCountPerSegment * 7, buffer) {
+Element7Segments::Element7Segments(size_t ledCountPerSegment, CRGB *buffer) : Element("Element7Segments", ledCountPerSegment * 7, buffer) {
     for (int i = 0; i < 7; i++) {
         ElementSegment *elem = new ElementSegment(ledCountPerSegment);
         addChild(elem);
     }
+}
+
+Element7Segments::Element7Segments(JsonObject &root) : Element("Element7Segments", root) {
+    
 }
 
 Element7Segments::~Element7Segments() {
@@ -60,7 +64,7 @@ void Element7Segments::indexToCoords(size_t index, double *x, double *y) {
     *y = POSITION_LOOKUP_Y[index];
 }
 
-void Element7Segments::exit(double *x, double *y) {
+void Element7Segments::exitCoords(double *x, double *y) {
     *x = -17.5;
     *y = 0.0;
 }

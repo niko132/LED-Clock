@@ -1,9 +1,29 @@
 #include "BrightnessFilter.h"
 
-BrightnessFilter::BrightnessFilter(uint8_t from, uint8_t to, unsigned long duration, unsigned long timeout) : Filter(timeout) {
+BrightnessFilter::BrightnessFilter(uint8_t from, uint8_t to, unsigned long duration, unsigned long timeout) : Filter("BrightnessFilter", timeout) {
     _from = from;
     _to = to;
     _duration = duration;
+}
+
+BrightnessFilter::BrightnessFilter(JsonObject &root) : Filter("BrightnessFilter", root) {
+    
+}
+
+void BrightnessFilter::fromJson(JsonObject &root) {
+    Filter::fromJson(root);
+
+    _from = root["from"] | _from;
+    _to = root["to"] | _to;
+    _duration = root["duration"] | _duration;
+}
+
+void BrightnessFilter::toJson(JsonObject &root) {
+    Filter::toJson(root);
+
+    root["from"] = _from;
+    root["to"] = _to;
+    root["duration"] = _duration;
 }
 
 void BrightnessFilter::setMaxBrightness(uint8_t max) {

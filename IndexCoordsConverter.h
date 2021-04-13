@@ -6,8 +6,8 @@
 class IndexCoordsConverter {
 public:
     virtual void indexToCoords(size_t index, double *x, double *y) = 0;
-    virtual void entry(double *x, double *y);
-    virtual void exit(double *x, double *y) = 0;
+    virtual void entryCoords(double *x, double *y);
+    virtual void exitCoords(double *x, double *y) = 0;
 };
 
 #endif // INDEX_COORDS_CONVERTER_H

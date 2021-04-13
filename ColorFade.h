@@ -12,6 +12,10 @@ private:
 
 public:
     ColorFade(double angle = 0.0, double scale = 1.0);
+    ColorFade(JsonObject &root);
+
+    void fromJson(JsonObject &root);
+    void toJson(JsonObject &root);
 
     void setAngleSpeed(double angleSpeed);
     void setShiftSpeed(double shiftSpeed);

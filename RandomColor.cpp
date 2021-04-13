@@ -2,7 +2,13 @@
 
 #include "Arduino.h"
 
-RandomColor::RandomColor() {
+RandomColor::RandomColor() : Effect("RandomColor") {
+    _changeSpeed = 2.0;
+    _pixelSize = 1;
+    _fade = false;
+}
+
+RandomColor::RandomColor(JsonObject &root) : Effect("RandomColor", root) {
     _changeSpeed = 2.0;
     _pixelSize = 1;
     _fade = false;

@@ -28,10 +28,11 @@ public:
     };
 
     ElementColon(size_t ledCountPerSegment, CRGB *buffer = NULL);
+    ElementColon(JsonObject &root);
     ~ElementColon();
 
     void indexToCoords(size_t index, double *x, double *y);
-    void exit(double *x, double *y);
+    void exitCoords(double *x, double *y);
 };
 
 #endif // ELEMENT_COLON_H

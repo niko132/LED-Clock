@@ -11,6 +11,10 @@ private:
 
 public:
     BreathingFilter(uint8_t from, uint8_t to, unsigned long period, unsigned long timeout = 0);
+    BreathingFilter(JsonObject &root);
+
+    void fromJson(JsonObject &root);
+    void toJson(JsonObject &root);
 
     CRGB apply(CRGB color);
 };

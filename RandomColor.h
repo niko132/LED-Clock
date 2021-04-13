@@ -10,6 +10,7 @@ private:
     bool _fade;
 
 public:
+    RandomColor(JsonObject &root);
     RandomColor();
 
     void setChangeSpeed(double changeSpeed);

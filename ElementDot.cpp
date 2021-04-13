@@ -1,6 +1,10 @@
 #include "ElementDot.h"
 
-ElementDot::ElementDot(size_t ledCount, CRGB *buffer) : Element(ledCount, buffer) {
+ElementDot::ElementDot(size_t ledCount, CRGB *buffer) : Element("ElementDot", ledCount, buffer) {
+
+}
+
+ElementDot::ElementDot(JsonObject &root) : Element("ElementDot", root) {
 
 }
 
@@ -23,7 +27,7 @@ void ElementDot::indexToCoords(size_t index, double *x, double *y) {
     }
 }
 
-void ElementDot::exit(double *x, double *y) {
+void ElementDot::exitCoords(double *x, double *y) {
     *x = 0.0;
     *y = 0.0;
 }

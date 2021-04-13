@@ -6,6 +6,7 @@
 #define FASTLED_ALLOW_INTERRUPTS 0
 
 #include <FastLED.h>
+#include <ArduinoJson.h>
 
 #include "ElementClock.h"
 #include "RTC.h"
@@ -20,7 +21,7 @@
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-IPAddress ip(192, 168, 178, 114);
+IPAddress ip(192, 168, 178, 118);
 
 IPAddress gateway(192, 168, 178, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -96,7 +97,26 @@ void setup() {
   clockElem.addFilter(new BrightnessFilter(0, 255, 10000, 10000));
 
   // add breathing effect to the middle dots
-  (*(++(++clockElem.childrenBegin())))->addFilter(new BreathingFilter(0, 255, 2000, 0));
+  clockElem.getColonElement()->addFilter(new BreathingFilter(0, 255, 2000, 0));
+
+
+
+  DynamicJsonDocument doc1(5120 * 2);
+  deserializeJson(doc1, "{\"effect\":{\"name\":\"RandomColor\",\"angle\":0,\"scale\":1,\"angleSpeed\":2,\"shiftSpeed\":0}}");
+  JsonObject root1 = doc1.as<JsonObject>();
+  clockElem.patchJson(root1);
+
+
+
+  DynamicJsonDocument doc(5120 * 2);
+  JsonObject root = doc.to<JsonObject>();
+  clockElem.toJson(root);
+
+  String output = "";
+  serializeJson(doc, output);
+
+  Serial.println(output);
+
 
   espalexa.begin();
 }
@@ -112,6 +132,8 @@ void loop()
     if (startMillis - lastUpdateMillis > 1000.0 / UPDATES_PER_SECOND) {
         clockElem.update(); // update the time and numbers
         FastLED.show();
+
+        // Serial.println("Heap: " + String(ESP.getFreeHeap()));
 
         lastUpdateMillis = startMillis;
     }

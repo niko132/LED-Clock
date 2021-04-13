@@ -3,16 +3,13 @@
 
 #include "Element.h"
 
+#include "Element7Segments.h"
+#include "ElementColon.h"
+
 #include "Espalexa.h"
 
 class ElementClock : public Element {
 private:
-    Element *_firstHourElem;
-    Element *_secondHourElem;
-    Element *_colonElem;
-    Element *_firstMinuteElem;
-    Element *_secondMinuteElem;
-
     Espalexa *_espalexa = NULL;
     EspalexaDevice *_alexaDevice = NULL;
 
@@ -21,12 +18,20 @@ protected:
 
 public:
     ElementClock(CRGB *buffer, Espalexa *espalexa);
+    ElementClock(JsonObject &root);
     ~ElementClock();
+
+    Element7Segments* getFirstHourElement();
+    Element7Segments* getSecondHourElement();
+    Element7Segments* getFirstMinuteElement();
+    Element7Segments* getSecondMinuteElement();
+
+    ElementColon* getColonElement();
 
     void setAlexaName(String name);
 
     void indexToCoords(size_t index, double *x, double *y);
-    void exit(double *x, double *y);
+    void exitCoords(double *x, double *y);
 
     void update();
 };

@@ -8,56 +8,50 @@
 #include "ColorFade.h"
 #include "RandomColor.h"
 
-ElementClock::ElementClock(CRGB *buffer, Espalexa *espalexa) : Element(232, buffer) { // the number of leds needed for a clock
-    _secondMinuteElem = new Element7Segments(8);
-    _firstMinuteElem = new Element7Segments(8);
-    _colonElem = new ElementColon(4);
-    _secondHourElem = new Element7Segments(8);
-    _firstHourElem = new Element7Segments(8);
+ElementClock::ElementClock(CRGB *buffer, Espalexa *espalexa) : Element("ElementClock", 232, buffer) { // the number of leds needed for a clock
+    addChild(new Element7Segments(8));
+    addChild(new Element7Segments(8));
+    addChild(new ElementColon(4));
+    addChild(new Element7Segments(8));
+    addChild(new Element7Segments(8));
 
-    addChild(_secondMinuteElem);
-    addChild(_firstMinuteElem);
-    addChild(_colonElem);
-    addChild(_secondHourElem);
-    addChild(_firstHourElem);
+    _effect = new ColorFade();
+    ((ColorFade*)_effect)->setAngleSpeed(2.0);
 
     _espalexa = espalexa;
     setAlexaName("Regal");
 }
 
+ElementClock::ElementClock(JsonObject &root) : Element("ElementClock", root) {
+    // do nothing here
+}
+
 ElementClock::~ElementClock() {
-    clearChildren();
-
-    if (_firstHourElem) {
-        delete _firstHourElem;
-        _firstHourElem = NULL;
-    }
-
-    if (_secondHourElem) {
-        delete _secondHourElem;
-        _secondHourElem = NULL;
-    }
-
-    if (_colonElem) {
-        delete _colonElem;
-        _colonElem = NULL;
-    }
-
-    if (_firstMinuteElem) {
-        delete _firstMinuteElem;
-        _firstMinuteElem = NULL;
-    }
-
-    if (_secondMinuteElem) {
-        delete _secondMinuteElem;
-        _secondMinuteElem = NULL;
-    }
-
     // TODO proper handle alexa device deleting - reference at espalexa is still there
     if (_alexaDevice) {
         delete _alexaDevice;
         _alexaDevice = NULL;
     }
+}
+
+Element7Segments* ElementClock::getFirstHourElement() {
+    return (Element7Segments*)getNthTypeChild("Element7Segments", 3);
+}
+
+Element7Segments* ElementClock::getSecondHourElement() {
+    return (Element7Segments*)getNthTypeChild("Element7Segments", 2);
+}
+
+Element7Segments* ElementClock::getFirstMinuteElement() {
+    return (Element7Segments*)getNthTypeChild("Element7Segments", 1);
+}
+
+Element7Segments* ElementClock::getSecondMinuteElement() {
+    return (Element7Segments*)getNthTypeChild("Element7Segments", 0);
+}
+
+ElementColon* ElementClock::getColonElement() {
+    return (ElementColon*)getNthTypeChild("ElementColon", 0);
 }
 
 void ElementClock::setAlexaName(String name) {
@@ -78,6 +72,17 @@ void ElementClock::onAlexaChange(EspalexaDevice *device) {
         setBrightness(0);
     } else if (prop == EspalexaDeviceProperty::bri) {
         setBrightness(_alexaDevice->getValue());
+    } else { // color
+        if (_alexaDevice->getColorMode() == EspalexaColorMode::ct) { // shade of white
+            uint16_t ct = _alexaDevice->getCt();
+            // TODO handle white
+        } else { // rgb
+            uint32_t color = _alexaDevice->getRGB();
+            uint8_t r = (color >> 16) & 0xFF;
+            uint8_t g = (color >> 8) & 0xFF;
+            uint8_t b = color & 0xFF;
+            // TODO handle RGB
+        }
     }
 }
 
@@ -97,7 +102,7 @@ void ElementClock::indexToCoords(size_t index, double *x, double *y) {
         double endX;
         double endY;
 
-        converter->entry(&startX, &startY);
+        converter->entryCoords(&startX, &startY);
 
         if (index < currentIndex + elem->getLedCount()) {
             converter->indexToCoords(index - currentIndex, &endX, &endY);
@@ -107,7 +112,7 @@ void ElementClock::indexToCoords(size_t index, double *x, double *y) {
 
             return;
         } else {
-            converter->exit(&endX, &endY);
+            converter->exitCoords(&endX, &endY);
             currentX += endX - startX;
             currentY += endY - startY;
 
@@ -122,66 +127,32 @@ void ElementClock::indexToCoords(size_t index, double *x, double *y) {
     }
 }
 
-void ElementClock::exit(double *x, double *y) {
+void ElementClock::exitCoords(double *x, double *y) {
     *x = -97.9;
     *y = 0.0;
 }
 
 void ElementClock::update() {
-    // TODO: update effect
+    if (!_effect) {
+        setColor(CRGB(0, 0, 0));
+        return; // do nothing when there is no effect
+    }
 
     // current placeholder effect
     double startX, startY, endX, endY;
     double width;
 
-    entry(&startX, &startY);
-    exit(&endX, &endY);
+    entryCoords(&startX, &startY);
+    exitCoords(&endX, &endY);
 
     width = startX - endX;
-
-    /*
-    for (size_t i = 0; i < getLedCount(); i++) {
-        double x;
-        double y;
-
-        indexToCoords(i, &x, &y);
-        x += width / 2.0;
-
-        uint8_t angle = (uint8_t) (millis() / 28.0 / 360.0 * 255.0);
-
-        double val = ((cos8(angle) - 128.0) / 128.0) * x + ((sin8(angle) - 128.0) / 128.0) * y;
-        uint8_t hue = (uint8_t) (val / (width * 1.1) * 255.0 + millis() / 390.0);
-
-        /*
-        // use threshold to make the effect 2 colored
-        if (hue < 128) {
-            hue = 0;
-        } else {
-            hue = 127;
-        }
-        */
-        /*
-        setColorAt(i, CHSV(hue, 255, 255));
-    }
-    */
-
-    ColorFade effect;
-    effect.setAngleSpeed(2.0);
-    // effect.setShiftSpeed(2.0);
-
-    /*
-    RandomColor effect;
-    effect.setChangeSpeed(5.0);
-    effect.setFading(true);
-    effect.setPixelSize(8);
-    */
 
     for (size_t i = 0; i < getLedCount(); i++) {
         double x, y;
         indexToCoords(i, &x, &y);
         x += width / 2.0; // center the animation in the middle
 
-        CRGB color = effect.getColor(i, getLedCount(), x, y);
+        CRGB color = _effect->getColor(i, getLedCount(), x, y);
         setColorAt(i, color);
     }
 
@@ -192,24 +163,14 @@ void ElementClock::update() {
     int secondMinuteDigit = RTC.getMinutes() % 10;
 
     // insert a 0 as a placeholder for the colon
-    int data[] = { secondMinuteDigit, firstMinuteDigit, 0, secondHourDigit, firstHourDigit };
+    int data[] = { secondMinuteDigit, firstMinuteDigit, secondHourDigit, firstHourDigit };
 
-    size_t currentIndex = 0;
-    for (element_iterator it = childrenBegin(); it != childrenEnd(); it++, currentIndex++) {
-        if (currentIndex == 2) {
-            continue;
+    for (size_t i = 0; i < 4; i++) {
+        Element7Segments *elem = (Element7Segments*)getNthTypeChild("Element7Segments", i);
+        if (elem) {
+            elem->setDigit(data[i]);
         }
-
-        Element7Segments *elem = (Element7Segments*)*it;
-        elem->setDigit(data[currentIndex]);
     }
-
-    // TODO: update children effect
-    /*
-    updateChildren();
-
-    applyFilter();
-    */
 
     Element::update();
 }

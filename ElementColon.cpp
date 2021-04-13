@@ -2,11 +2,15 @@
 
 #include "ElementDot.h"
 
-ElementColon::ElementColon(size_t ledCountPerSegment, CRGB *buffer) : Element(ledCountPerSegment * 2, buffer) {
+ElementColon::ElementColon(size_t ledCountPerSegment, CRGB *buffer) : Element("ElementColon", ledCountPerSegment * 2, buffer) {
     for (int i = 0; i < 2; i++) {
         ElementDot *elem = new ElementDot(ledCountPerSegment);
         addChild(elem);
     }
+}
+
+ElementColon::ElementColon(JsonObject &root) : Element("ElementColon", root) {
+    
 }
 
 ElementColon::~ElementColon() {
@@ -63,7 +67,7 @@ void ElementColon::indexToCoords(size_t index, double *x, double *y) {
     *y = POSITION_LOOKUP_Y[index];
 }
 
-void ElementColon::exit(double *x, double *y) {
+void ElementColon::exitCoords(double *x, double *y) {
     *x = -17.5;
     *y = 0.0;
 }

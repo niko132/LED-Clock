@@ -2,7 +2,9 @@
 #define ELEMENT_H
 
 #include "IndexCoordsConverter.h"
+#include "JsonProcessor.h"
 #include "Filter.h"
+#include "Effect.h"
 
 #include <FastLED.h>
 
@@ -14,8 +16,9 @@ class Element;
 typedef std::list<Element*>::iterator element_iterator;
 typedef std::list<Filter*>::iterator filter_iterator;
 
-class Element : public IndexCoordsConverter {
+class Element : public IndexCoordsConverter, public JsonProcessor {
 private:
+    String _type;
     CRGB *_buffer = NULL;
     size_t _ledCount;
 
@@ -24,11 +27,20 @@ private:
 
     std::list<Filter*> _filters;
 
+protected:
+    Effect *_effect = NULL;
+
 public:
-    Element(size_t ledCount, CRGB *buffer = NULL);
+    Element(String type, size_t ledCount, CRGB *buffer = NULL);
+    Element(String type, JsonObject &root);
     ~Element();
 
+    virtual void fromJson(JsonObject &root);
+    virtual void patchJson(JsonObject &root);
+    virtual void toJson(JsonObject &root);
+
     size_t getLedCount();
+    String getType();
 
     void setBuffer(CRGB *buffer);
     CRGB* getBuffer();
@@ -36,6 +48,8 @@ public:
     bool addChild(Element *child);
     void removeChild(Element *child);
     void clearChildren();
+
+    Element* getNthTypeChild(String type, size_t n);
 
     element_iterator childrenBegin();
     element_iterator childrenEnd();
@@ -50,7 +64,7 @@ public:
     void applyFilter();
 
     virtual void indexToCoords(size_t index, double *x, double *y) = 0;
-    virtual void exit(double *x, double *y) = 0;
+    virtual void exitCoords(double *x, double *y) = 0;
 
     virtual void update();
     void updateChildren();
