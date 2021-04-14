@@ -3,15 +3,52 @@
 #include "Arduino.h"
 
 RandomColor::RandomColor() : Effect("RandomColor") {
-    _changeSpeed = 2.0;
-    _pixelSize = 1;
-    _fade = false;
+
 }
 
-RandomColor::RandomColor(JsonObject &root) : Effect("RandomColor", root) {
-    _changeSpeed = 2.0;
-    _pixelSize = 1;
-    _fade = false;
+RandomColor::RandomColor(JsonObject &root) : Effect("RandomColor") {
+    fromJson(root);
+}
+
+void RandomColor::fromJson(JsonObject &root) {
+    Effect::fromJson(root);
+
+    _changeSpeed = root["changeSpeed"] | _changeSpeed;
+    _pixelSize = root["pixelSize"] | _pixelSize;
+    _fade = root["fade"] | _fade;
+}
+
+void RandomColor::patchJson(JsonObject &root) {
+    Effect::patchJson(root);
+
+    /*
+    JsonVariant changeSpeedVariant = root["changeSpeed"];
+    if (changeSpeedVariant) {
+        _changeSpeed = changeSpeedVariant.as<double>();
+    }
+
+    JsonVariant pixelSizeVariant = root["pixelSize"];
+    if (pixelSizeVariant) {
+        _pixelSize = pixelSizeVariant.as<size_t>();
+    }
+
+    JsonVariant fadeVariant = root["fade"];
+    if (fadeVariant) {
+        _fade = fadeVariant.as<bool>();
+    }
+    */
+
+    patchProperty(root, "changeSpeed", &_changeSpeed);
+    patchProperty(root, "pixelSize", &_pixelSize);
+    patchProperty(root, "fade", &_fade);
+}
+
+void RandomColor::toJson(JsonObject &root) {
+    Effect::toJson(root);
+
+    root["changeSpeed"] = _changeSpeed;
+    root["pixelSize"] = _pixelSize;
+    root["fade"] = _fade;
 }
 
 void RandomColor::setChangeSpeed(double changeSpeed) {

@@ -11,6 +11,7 @@ private:
 
 public:
     Effect(String name, JsonObject &root) {
+        Serial.println("Effect constructor");
         _name = name;
         fromJson(root);
     }

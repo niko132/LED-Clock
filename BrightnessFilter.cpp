@@ -6,8 +6,8 @@ BrightnessFilter::BrightnessFilter(uint8_t from, uint8_t to, unsigned long durat
     _duration = duration;
 }
 
-BrightnessFilter::BrightnessFilter(JsonObject &root) : Filter("BrightnessFilter", root) {
-    
+BrightnessFilter::BrightnessFilter(JsonObject &root) : Filter("BrightnessFilter") {
+    fromJson(root);
 }
 
 void BrightnessFilter::fromJson(JsonObject &root) {

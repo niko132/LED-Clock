@@ -15,6 +15,7 @@ public:
     ColorFade(JsonObject &root);
 
     void fromJson(JsonObject &root);
+    void patchJson(JsonObject &root);
     void toJson(JsonObject &root);
 
     void setAngleSpeed(double angleSpeed);

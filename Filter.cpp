@@ -6,6 +6,10 @@ Filter::Filter(String type, unsigned long timeout) {
     _startMillis = millis();
 }
 
+Filter::Filter(String type) : Filter(type, 0) {
+    
+}
+
 void Filter::fromJson(JsonObject &root) {
     _timeout = root["timeout"] | _timeout;
     _startMillis = millis() - (root["diffMillis"] | 0L);

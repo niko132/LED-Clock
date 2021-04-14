@@ -6,8 +6,8 @@ BreathingFilter::BreathingFilter(uint8_t from, uint8_t to, unsigned long period,
     _period = period;
 }
 
-BreathingFilter::BreathingFilter(JsonObject &root) : Filter("BreathingFilter", root) {
-    
+BreathingFilter::BreathingFilter(JsonObject &root) : Filter("BreathingFilter") {
+    fromJson(root);
 }
 
 void BreathingFilter::fromJson(JsonObject &root) {

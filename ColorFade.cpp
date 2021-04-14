@@ -7,8 +7,8 @@ ColorFade::ColorFade(double angle, double scale) : Effect("ColorFade") {
     _shiftSpeed = 0.0;
 }
 
-ColorFade::ColorFade(JsonObject &root) : Effect("ColorFade", root) {
-    
+ColorFade::ColorFade(JsonObject &root) : Effect("ColorFade") {
+    fromJson(root);
 }
 
 void ColorFade::fromJson(JsonObject &root) {
@@ -18,6 +18,15 @@ void ColorFade::fromJson(JsonObject &root) {
     _scale = root["scale"] | _scale;
     _angleSpeed = root["angleSpeed"] | _angleSpeed;
     _shiftSpeed = root["shiftSpeed"] | _shiftSpeed;
+}
+
+void ColorFade::patchJson(JsonObject &root) {
+    Effect::patchJson(root);
+
+    patchProperty(root, "angle", &_angle);
+    patchProperty(root, "scale", &_scale);
+    patchProperty(root, "angleSpeed", &_angleSpeed);
+    patchProperty(root, "shiftSpeed", &_shiftSpeed);
 }
 
 void ColorFade::toJson(JsonObject &root) {

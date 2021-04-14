@@ -141,17 +141,24 @@ void Element::patchJson(JsonObject &root) {
     }
 
     JsonObject effectObject = root["effect"];
-    String effectName = effectObject["name"];
+    String effectName = effectObject["name"] | "";
     if (effectObject) {
-        if (!_effect || !_effect->getName().equals(effectName)) {
+        Serial.println("Has Effect: " + String(_effect != NULL));
+        if (_effect) {
+            Serial.println("Current Effect: " + _effect->getName());
+        }
+        Serial.println("New Effect: " + effectName);
+
+        if (_effect && (effectName.length() == 0 || _effect->getName().equals(effectName))) {
+            Serial.println("Patching effect...");
+            _effect->patchJson(effectObject);
+        } else {
             if (_effect) {
                 delete _effect;
                 _effect = NULL;
             }
 
             _effect = createEffect(effectName, effectObject);
-        } else {
-            _effect->patchJson(effectObject);
         }
     }
 }
@@ -295,7 +302,13 @@ void Element::removeAllFilters() {
         }
     }
 
+    Filter *first = *_filters.begin();
+
     _filters.clear();
+
+    if (first) {
+        _filters.push_back(first);
+    }
 }
 
 void Element::applyFilter() {

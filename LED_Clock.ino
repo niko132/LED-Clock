@@ -15,13 +15,15 @@
 #include "BreathingFilter.h"
 
 #include "Espalexa.h"
+#include <FS.h>
+#include <ESPAsyncWebServer.h>
 
 #include "config.h"
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-IPAddress ip(192, 168, 178, 118);
+IPAddress ip(192, 168, 178, 114);
 
 IPAddress gateway(192, 168, 178, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -35,9 +37,13 @@ CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 60
 
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
 Espalexa espalexa;
 
 ElementClock clockElem(leds, &espalexa);
+
+String msg = "";
 
 void setup() {
   Serial.begin(115200);
@@ -93,32 +99,119 @@ void setup() {
 
   RTC.begin();
 
+
+
+  // web server stuff
+  if(!SPIFFS.begin()){
+      Serial.println("An Error has occurred while mounting SPIFFS");
+  }
+
+  server.on("/free_heap", HTTP_GET, [](AsyncWebServerRequest *request) {
+      request->send(200, "text/html", String(ESP.getFreeHeap()));
+  });
+
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+
+  ws.onEvent([msg](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+      if(type == WS_EVT_CONNECT){
+          Serial.printf("ws[%s][%u] connect", server->url(), client->id());
+          Serial.println();
+
+          DynamicJsonDocument doc(2048 * 2);
+          JsonObject root = doc.to<JsonObject>();
+          clockElem.toJson(root);
+
+          String output = "";
+          serializeJson(doc, output);
+
+          client->text(output);
+      } else if(type == WS_EVT_DISCONNECT){
+          Serial.printf("ws[%s][%u] disconnect", server->url(), client->id());
+          Serial.println();
+      } else if(type == WS_EVT_ERROR){
+          Serial.printf("ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+          Serial.println();
+      } else if(type == WS_EVT_PONG){
+          Serial.printf("ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len)?(char*)data:"");
+          Serial.println();
+      } else if(type == WS_EVT_DATA){
+          AwsFrameInfo *info = (AwsFrameInfo*)arg;
+          if(info->final && info->index == 0 && info->len == len){
+              //the whole message is in a single frame and we got all of it's data
+              Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+              Serial.println();
+              msg = "";
+
+              if(info->opcode == WS_TEXT) { // we only care about text messages
+                  for(size_t i=0; i < info->len; i++) {
+                      msg += (char) data[i];
+                  }
+
+                  // TODO: message received
+                  handleConfig(msg);
+              }
+          } else {
+              //message is comprised of multiple frames or the frame is split into multiple packets
+              if(info->index == 0){
+                  if(info->num == 0) {
+                      Serial.printf("ws[%s][%u] %s-message start", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+                      Serial.println();
+                      msg = "";
+                  }
+
+                  Serial.printf("ws[%s][%u] frame[%u] start[%llu]", server->url(), client->id(), info->num, info->len);
+                  Serial.println();
+              }
+
+              Serial.printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+              Serial.println();
+
+              if(info->opcode == WS_TEXT) { // we only care about text messages
+                  for(size_t i=0; i < len; i++) {
+                      msg += (char) data[i];
+                  }
+
+                  if ((info->index + len) == info->len && info->final) {
+                      // TODO: message received
+                      handleConfig(msg);
+                  }
+              }
+          }
+      }
+  });
+
+  server.addHandler(&ws);
+  server.begin();
+
+
+
+
+
   // fade in for 10 secs
   clockElem.addFilter(new BrightnessFilter(0, 255, 10000, 10000));
 
   // add breathing effect to the middle dots
   clockElem.getColonElement()->addFilter(new BreathingFilter(0, 255, 2000, 0));
 
-
-
-  DynamicJsonDocument doc1(5120 * 2);
-  deserializeJson(doc1, "{\"effect\":{\"name\":\"RandomColor\",\"angle\":0,\"scale\":1,\"angleSpeed\":2,\"shiftSpeed\":0}}");
-  JsonObject root1 = doc1.as<JsonObject>();
-  clockElem.patchJson(root1);
-
-
-
-  DynamicJsonDocument doc(5120 * 2);
-  JsonObject root = doc.to<JsonObject>();
-  clockElem.toJson(root);
-
-  String output = "";
-  serializeJson(doc, output);
-
-  Serial.println(output);
-
-
   espalexa.begin();
+}
+
+void handleConfig(String json) {
+    DynamicJsonDocument doc(5 * 2048);
+    DeserializationError err = deserializeJson(doc, json);
+    JsonObject root = doc.as<JsonObject>();
+
+    if (err) {
+        Serial.print("DeserializationError: ");
+        Serial.println(err.c_str());
+    }
+
+    size_t memCapacity = doc.capacity();
+    size_t memUsage = doc.memoryUsage();
+
+    Serial.println("JSON: " + String(memUsage) + "/" + String(memCapacity));
+
+    clockElem.patchJson(root);
 }
 
 unsigned long lastUpdateMillis = 0;

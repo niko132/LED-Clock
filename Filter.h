@@ -13,6 +13,7 @@ protected:
 
 public:
     Filter(String type, unsigned long timeout);
+    Filter(String type);
 
     virtual void fromJson(JsonObject &root);
     virtual void patchJson(JsonObject &root);
